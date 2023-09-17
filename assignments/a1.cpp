@@ -29,6 +29,9 @@ public:
    void PrintF();//Print forward from head
    void PrintB();//Print backward from tail
 
+   //Add the statement below as well as the initializer_list implementation right after class DLL.
+   DLL(const initializer_list<int>& I);//Initializer List
+
 
    void Sort(Dnode * p1, Dnode *p2);//Sort the portion of a DLL from
    //the Dnode pointed by p1 until the Dnode pointed by p2
@@ -56,7 +59,24 @@ DLL::DLL(int n, int m) {
    }
 }
 
+DLL::DLL(const initializer_list<int>& I) {//Implementation of initializer_list for class DLL
+   head = nullptr;
+   for (auto& i : I) {
+      if (!head) head = tail = new Dnode{ i };
+      else {
+         tail->next = new Dnode{ i };
+         tail->next->previous = tail;
+         tail = tail->next;
+      }
+   }
+}
+
+
 void DLL::Sort(Dnode * p1, Dnode *p2) {
+   if (!p1 || !p2) {
+      return;
+   }
+
    Dnode* outer_p{ p1 };
    Dnode* ending_p{ p2->next };
    // using a double pointer to keep track
@@ -143,6 +163,9 @@ void DLL::Sort(Dnode * p1, Dnode *p2) {
 }
 
 void DLL::Merge(Dnode *p1, Dnode *p2, Dnode *p3, Dnode *p4) {
+   if (!p1 || !p2 || !p3 || !p4) {
+      return;
+   }
    /**
     * Class note: p1 is the start of the first list
     *             p2 is the end of the first list
@@ -170,57 +193,56 @@ void DLL::Merge(Dnode *p1, Dnode *p2, Dnode *p3, Dnode *p4) {
     *
     */
 
-   /*TODO: if the lists are next to each other and second list head moves then this pointer
-    * needs to be updated as well*/
-   Dnode* ending_p_1{ p2->next };
-   Dnode* ending_p_2{ p4->next };
-   // while both the first list and second list have a node to point to
-   Dnode* inner_p_1{ p1 }; // pointer keep track of the first list
-   Dnode* inner_p_2{ p3 }; // pointer keep track of the second list
-   while (inner_p_1 != ending_p_1 && inner_p_2 != ending_p_2) { // while can terminate either list ends
-      Dnode* next_p_1 = inner_p_1->next;
-      Dnode* next_p_2 = inner_p_2->next;
+//   /*TODO: if the lists are next to each other and second list head moves then this pointer
+//    * needs to be updated as well*/
+      Dnode* ending_p1{ p2->next };
+      Dnode* ending_p2{ p4->next };
+      Dnode* inner_p1{ p1 };
+      Dnode* inner_p2{ p3 };
 
-      if (ending_p_1 == inner_p_2) { // if the lists are next to each other, then you need to update each iter
-         ending_p_1 = inner_p_2->next;
+      while (inner_p1 != ending_p1 && inner_p2 != ending_p2) {
+         Dnode* next_p1 = inner_p1->next;
+         Dnode* next_p2 = inner_p2->next;
+         if (ending_p1 == inner_p2) { // if the lists are next to each other, then you need to update each iter
+            ending_p1 = inner_p2->next;
+         }
+
+         if (inner_p2->value < inner_p1->value) {
+            if (inner_p1->previous) {
+               inner_p1->previous->next = inner_p2;
+            }
+
+            // L2 next needs to be updated
+            inner_p2->previous->next = inner_p2->next;
+            if (inner_p2->next) {
+               inner_p2->next->previous = inner_p2->previous;
+            }
+
+            inner_p2->previous = inner_p1->previous;
+            if (! inner_p2->previous) { // new head pointer
+               this->head = inner_p2;
+            }
+            inner_p2->next = inner_p1;
+//            if (! inner_p2->next) { // new tail pointer
+//               this->tail = inner_p2;
+//            }
+
+            inner_p1->previous = inner_p2;
+
+            inner_p2 = next_p2;
+         } else {
+            inner_p1 = next_p1;
+         }
+         // iterate over each node and manually find the tail node
+         // not the best implementation :) 
+         Dnode* p{this->head};
+         while (p) {
+            if (p->next == nullptr) {
+               this->tail = p;
+            }
+            p = p->next;
+         }
       }
-
-      // Case 1: where L(X), M(X) are not adjacent
-      // Case 2: where L(X), M(X) are adjacent
-      if (inner_p_2->value < inner_p_1->value) { // node belongs on the left side (LEFT SIDE MERGE)
-         // replacement pattern
-         inner_p_2->previous->next = inner_p_2->next;
-         inner_p_2->next->previous = inner_p_2->previous;
-
-         if (inner_p_1->previous) {
-            inner_p_1->previous->next = inner_p_2;
-         }
-         inner_p_1->previous = inner_p_2;
-
-         inner_p_2->previous = inner_p_1->previous;
-         inner_p_2->next = inner_p_1;
-
-         // only increment p2
-         inner_p_2 = next_p_2;
-      } else { // >= (greater than or equal to) node belongs on the right side (RIGHT SIDE MERGE)
-         inner_p_2->previous->next = inner_p_2->next;
-         if (inner_p_2->next) {
-            inner_p_2->next->previous = inner_p_2->previous;
-         }
-         if (inner_p_1->next) {
-            inner_p_1->next->previous = inner_p_2;
-         }
-         inner_p_1->next = inner_p_2;
-
-         inner_p_2->next = inner_p_1->next;
-         inner_p_2->previous = inner_p_1;
-
-         // only increment p1
-         inner_p_1 = next_p_1;
-      }
-
-
-   }
 }
 
 void DLL::PrintF() {
@@ -244,27 +266,28 @@ void DLL::PrintB() {
 
 
 int main() { //During grading, TA might use differnt examples to test your code.
-   DLL  L1{ 5, 20 };
+   DLL  L1(5, 20);
    L1.PrintF();
-  L1.PrintB();
+//   L1.PrintB();
 
    L1.Sort(L1.head, L1.tail );
    L1.PrintF();
-   
-  L1.PrintB();
-   cout << endl;
-   DLL L2{ 5, 15 };
+
+//   L1.PrintB();
+
+   DLL L2(5, 15 );
    L2.Sort(L2.head, L2.tail);
+   L2.PrintF();
    L1.tail->next = L2.head;
    L2.head->previous = L1.tail;
    L1.tail = L2.tail;
    L1.PrintF();
 
-   L1.Merge(L1.head->next, L2.head->previous->previous, L2.head, L1.tail->previous);
+   L1.Merge(L1.head, L2.head->previous, L2.head, L1.tail);
 
    L1.PrintF();
-  L1.PrintB();
-
+   L1.PrintB();
 
    return 0;
 }
+
