@@ -58,8 +58,8 @@ public:
 
 };
 
-//
-//
+
+
 void LinkedList::RemoveOne(int k) {
 	if (!head) return;//empty linked list
 	if (head->value == k) { //if the first node carries value k
@@ -83,9 +83,19 @@ void LinkedList::RemoveOne(int k) {
 
 
 void LinkedList::Sort() {
-	if (!head || !head->next) return;//0 or 1 node
+	if (!head || !head->next) return;//0 or 1 node  || logical or operation
+	//C++ adopts short-circuiting in logic expressions
+	//short-circuiting:  for OR: if a true is obtained, the evaluation will stop
+	//for AND: if a false is obtained, the evaluation  will stop
+
+
+	//if (!head->next || !head) return;  Will cause error when the Linked List is empty
+
+	//if (a = 0) ..... a= 5 will return 5  ==
+
+
 	node* p1{ head };
-	while (p1->next) {
+	while (p1->next) {//p1->next != nullptr
 		node* p2 = p1->next;
 		node* pmin = p1;
 		int min{ p1->value };
@@ -103,7 +113,7 @@ void LinkedList::Sort() {
 		p1 = p1->next;
 	}
 }
-//
+
 void LinkedList::Reverse() {//Reverse is a member of class LinkedList (with the notation of LinkedList:: )
 	if (!head || !head->next) return;//0 or 1 node   short-circuiting
 	/*
@@ -160,45 +170,45 @@ int main() {
 
 
 
-	//ThreeD1 t00;//default constructor
+	ThreeD1 t00;//default constructor
 
-	//ThreeD t01;//default constructor
-
-
-
-	//t00.ht = 25;
-	//t00.wid = 14;
-	//t00.dep = 4;
+	ThreeD t01;//default constructor
 
 
 
-	//ThreeD1 t1{ 1,2,3 };//aggregate initializaiton ht=1, wid = 2, dep = 3
-
-
-	//cout << t1.ht << " " << t1.wid << " " << t1.dep << endl;
-	////1 2 3 
+	t00.ht = 25;
+	t00.wid = 14;
+	t00.dep = 4;
 
 
 
-	//ThreeD t2{ 1,2,3 };
-	//cout << t2.ht << " " << t2.wid << " " << t2.dep << endl;
-	////2 4 6
+	ThreeD1 t1{ 1,2,3 };//aggregate initializaiton ht=1, wid = 2, dep = 3
 
-	//ThreeD* p1 = new ThreeD{ 2,2,2 };//ht = 4; wid = 4; dep = 4;
 
-	//(*p1).ht = 4;//  p1->ht = 4;// p1 select ht
+	cout << t1.ht << " " << t1.wid << " " << t1.dep << endl;
+	//1 2 3 
 
-	//cout << (*p1).vol() << endl;//64
 
-	//cout << p1->vol() << " " << p1->ht << endl;
-	////-> pronounced as select in this class.  Some people say it arrow.
 
-	//ThreeD* p2{ &t2 };
-	//cout << p2->ht << " " << p2->vol() << endl;
-	//p2->wid = 21;
+	ThreeD t2{ 1,2,3 };
+	cout << t2.ht << " " << t2.wid << " " << t2.dep << endl;
+	//2 4 6
 
-	//ThreeD1 t11; //members are not defined initially
-	//ThreeD t12;
+	ThreeD* p1 = new ThreeD{ 2,2,2 };//ht = 4; wid = 4; dep = 4;
+
+	(*p1).ht = 4;//  p1->ht = 4;// p1 select ht
+
+	cout << (*p1).vol() << endl;//64
+
+	cout << p1->vol() << " " << p1->ht << endl;
+	//-> pronounced as select in this class.  Some people say it arrow.
+
+	ThreeD* p2{ &t2 };
+	cout << p2->ht << " " << p2->vol() << endl;
+	p2->wid = 21;
+
+	ThreeD1 t11; //members are not defined initially
+	ThreeD t12;
 
 	LinkedList L1{ 20, 10 };
 
@@ -206,12 +216,41 @@ int main() {
 
 	L1.Reverse();
 	L1.PrintLL();
-	//L1.RemoveOne(1);
-	//L1.RemoveOne(6);
-	//L1.RemoveOne(8);
-	//L1.PrintLL();
-	//L1.Sort();
-	//L1.PrintLL();
+	L1.RemoveOne(1);
+	L1.RemoveOne(6);
+	L1.RemoveOne(8);
+	L1.PrintLL();
+	L1.Sort();
+	L1.PrintLL();
+
+
+	const int i{ 5 };
+	//i = 45;  Error i is const
+	int j20{ 10 }, j30{ 25 };
+
+	const int * p30{ &j20 };
+	//int const * p30 {&j20};  equivalent
+	//the object pointed by p30 is const
+	//but p30 itself is not const
+
+
+	//*p30 = 100; Error the object pointed by p30 is const 
+	j20 = 500;
+	p30 = &j30;
+
+
+	int* const p40{ &j20 };
+	//p40 itself is const, but not the objected pointe3d by p30
+	*p40 = 60;
+	//p40 = &j30;  Error. P40 is const
+
+	const int* const p50{ &j20 };
+	//both p50 and the object pointed by p50 are const
+
 
 	return 0;
 }
+
+
+
+
