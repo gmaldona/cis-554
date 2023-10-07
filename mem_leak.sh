@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# mem_leak.sh -
+#
+# Checks for memory leaks in a C++ program using GNU leaks 
+# If there are no memory leaks, the output should be 0 leaks
+# You can pipe mem_leak into grep to check for leaks
+# $ ./mem_leaks.sh | grep leaks
+
 assignment_cpp="$1"
 
 if [ -z "$assignment_cpp" ]; then
