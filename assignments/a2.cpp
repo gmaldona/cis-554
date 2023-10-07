@@ -276,7 +276,6 @@ void add_course(map<int, pair<pair<int, float>*, map<int, tuple<int, float, list
    { return c1->name < c2->name; });
 
    // update semester cumulative
-
    // for each semester
    float cumulative_gpa = 0.0f;
    float total_quality_points = 0.0f;
@@ -299,13 +298,18 @@ void add_course(map<int, pair<pair<int, float>*, map<int, tuple<int, float, list
          total_credits += student_course->credits;
       }
       semester_gpa = (quality_points) / (float)semester_credits;
+      auto* old_semester = &semester_map[student_semester.first];
 
+      delete semester_map[student_semester.first];
       semester_map[student_semester.first] =
          new tuple<int, float, list<course*> >{ semester_credits, semester_gpa, semester_courses };
+//      delete *old_semester;
+
+
    }
    cumulative_gpa = (total_quality_points) / (float)total_credits;
    auto& student_cumulative = DB[id].first;
-//   delete student_cumulative;
+   delete student_cumulative;
    DB[id].first = new pair<int, float>{ total_credits, cumulative_gpa };
 
 }
@@ -322,20 +326,18 @@ void drop_course(map<int, pair<pair<int, float>*, map<int, tuple<int, float, lis
    auto it2{ semester_map.find(semester) };
    if (it2 == semester_map.end()) return;
 
-   auto& student_courses{ get<2>(*it2->second) };
-   for (course*& student_course : student_courses)
+   auto* student_courses{ &get<2>(*it2->second) };
+   for (course*& student_course : *student_courses)
    {
       if (!(c == *student_course))
       {
          continue;
       }
 
-      student_courses.remove(student_course);
-//      delete student_course;
+      delete student_course;
+      student_courses->remove(student_course);
       break;
    }
-
-
 
    // update semester cumulative
    // for each semester
@@ -347,11 +349,12 @@ void drop_course(map<int, pair<pair<int, float>*, map<int, tuple<int, float, lis
       const int semester_id = student_semester.first;
       auto& semester_entry{ student_semester.second };
       list<course*> semester_courses{ get<2>(*semester_entry) };
+      auto* semester_courses_ptr = &semester_courses;
       // for each course in each semester
       float semester_gpa = 0.0f;
       float quality_points = 0;
       int semester_credits = 0;
-      for (course*& student_course : student_courses)
+      for (course*& student_course : *semester_courses_ptr)
       {
          quality_points += (student_course->num_grade() * (float)student_course->credits);
          semester_credits += student_course->credits;
@@ -360,9 +363,11 @@ void drop_course(map<int, pair<pair<int, float>*, map<int, tuple<int, float, lis
          total_credits += student_course->credits;
       }
       semester_gpa = (quality_points) / (float)semester_credits;
-//      delete student_semester.second;
+
+      delete student_semester.second;
+
       semester_map[student_semester.first] =
-         new tuple<int, float, list<course*> >{ semester_credits, semester_gpa, student_courses };
+         new tuple<int, float, list<course*> >{ semester_credits, semester_gpa, *semester_courses_ptr };
    }
    cumulative_gpa = (total_quality_points) / (float)total_credits;
    auto& student_cumulative = DB[id].first;
@@ -398,7 +403,7 @@ void remove_student(map<int, pair<pair<int, float>*, map<int, tuple<int, float, 
       // delete each semester
       for (auto& student_course : student_courses)
       {
-//         delete student_course;
+         delete student_course;
       }
       delete student_semester;
    }
@@ -410,12 +415,11 @@ void remove_student(map<int, pair<pair<int, float>*, map<int, tuple<int, float, 
 
 int main()
 {
-
    map<int, pair<pair<int, float>*, map<int, tuple<int, float, list<course*> >*>*> > DB;
    add_student(DB, 11111);
    course C1("CIS554", 1, 3, "A-"), C2("CSE674", 1, 3, "B+"), C3("MAT296", 8, 4, "A"), C4("WRT205", 5, 3, "A");
 
-   add_course(DB, 20171, 11111, C1);
+   add_course(DB, 20171, 11111, C1); // todo: if theres only one class then the gpa wont be calculated
    add_course(DB, 20171, 11111, C4);
    add_course(DB, 20171, 11111, C3);
    add_course(DB, 20171, 11111, C2);
@@ -424,7 +428,7 @@ int main()
    drop_course(DB, 20171, 11111, C1);
 
    print_student_semester_courses(DB, 20171, 11111); //sorted according to course name
-
+//
    course C5("CIS351", 2, 3, "A-"), C6("PSY205", 5, 3, "B+"), C7("MAT331", 2, 3, "A"), C8("ECN203", 4, 3, "A");
    add_course(DB, 20172, 11111, C5);
    add_course(DB, 20172, 11111, C6);
@@ -445,12 +449,13 @@ int main()
    add_course(DB, 20172, 11112, C5);
    add_course(DB, 20172, 11112, C1);
    print_student_semester_courses(DB, 20172, 11112);
-
+//
    print_student_all_courses(DB, 11112);
 
    //Overload operator<< to allow the following cout statements.
    cout << DB << endl;
    remove_student(DB, 11111);
    cout << DB << endl;
+   remove_student(DB, 11112);
    return 0;
 }
