@@ -85,36 +85,28 @@ tree::tree(const initializer_list<int>& I)
 	 {
 		  return;
 	 }
-	 const int max_depth = log2(I.size() + 1);
-
-	 root = new node();
-	 root->Lchild = new node();
-	 root->Rchild = new node();
-
-	 int depth = 2;
-
-	 std::stack<node*> node_stacktrace{};
-	 auto build = [&](node*& child_ptr)
+	 else if (I.size() == 1)
 	 {
-		auto& node_ptr = child_ptr;
-		node_stacktrace.push(node_ptr);
-		while (depth < max_depth)
-		{
-			 node_stacktrace.top()->Lchild = new node();
-			 node_stacktrace.push(node_stacktrace.top()->Lchild);
-			 depth++;
-		}
-		while (1 < node_stacktrace.size())
-		{
-			 node_stacktrace.pop();
-			 node_stacktrace.top()->Rchild = new node();
-		}
+		  root = new node(*I.begin());
+		  return;
+	 }
 
-		depth = 2;
+	 const int max_depth = log2(I.size() + 1);
+	 root = new node();
+
+	 function<void(node*& p, const int&)> build;
+	 build = [&](node*& p, const int& depth)
+	 {
+		if (depth < max_depth)
+		{
+			 p->Lchild = new node();
+			 p->Rchild = new node();
+			 build(p->Lchild, depth + 1);
+			 build(p->Rchild, depth + 1);
+		}
 	 };
 
-	 build(root->Lchild);
-	 build(root->Rchild);
+	 build(root, 1);
 
 	 auto it = I.begin();
 	 helper(I, it, root);
@@ -122,9 +114,8 @@ tree::tree(const initializer_list<int>& I)
 
 void tree::helper(const initializer_list<int>& I, const int*& pI, node* p)
 {
-	 if (!p->Lchild)
+	 if (!p)
 	 {
-		  p->value = *pI++;
 		  return;
 	 }
 
@@ -183,17 +174,11 @@ node* tree::MakeTree(int n, int m)
 int main()
 {
 //	 tree T20{ 4, 2, 5, 1, 6, 3, 7 };
-//	 tree T20{ 0, 1, 2, 3, 4, 5, 6 };
-	 tree T20{ 65, 66, 5, 10, 7, 17, 8, 3, 11, 9, 12, 2, 13, 554, 14 };
-
-	 cout << "Root: " << T20.root->value << endl;
-	 cout << "L: " << T20.root->Lchild->value << endl;
-	 cout << "R: " << T20.root->Rchild->value << endl;
-	 cout << "LL: " << T20.root->Lchild->Lchild->value << endl;
-	 cout << "LR: " << T20.root->Lchild->Rchild->value << endl;
-
-	 cout << "RL: " << T20.root->Rchild->Lchild->value << endl;
-	 cout << "RR: " << T20.root->Rchild->Rchild->value << endl;
+	 tree T20{ 0, 1, 2, 3, 4, 5, 6 };
+//	 tree T20
+//		 { 65, 66, 5, 10, 7, 17, 8, 3, 11, 9, 12, 2, 13, 554, 14, 65, 66, 5, 10, 7, 17, 8, 3, 11, 9, 12, 2, 13, 554, 14,
+//			3 };
+//	 tree T20{ 3 };
 
 	 T20.InOrderT(T20.root);
 	 cout << endl;//0 1 2 3 4 5 6
@@ -205,7 +190,6 @@ int main()
 		cleanup_memory(p->Lchild);
 		cleanup_memory(p->Rchild);
 		delete p;
-		cout << "deleting " << p << endl;
 	 };
 
 	 cleanup_memory(T20.root->Lchild);
