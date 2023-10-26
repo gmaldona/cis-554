@@ -2,7 +2,7 @@
 
 # mem_leak.sh -
 #
-# Checks for memory leaks in a C++ program using GNU leaks 
+# Checks for memory leaks in a C++ program using GNU leaks
 # If there are no memory leaks, the output should be 0 leaks
 # You can pipe mem_leak into grep to check for leaks
 # $ ./mem_leaks.sh | grep leaks
@@ -15,7 +15,11 @@ fi
 
 assignment="${assignment_cpp%.*}"
 
->&2 echo "[INFO/DEBUG] Checking for memory leaks in $assignment_cpp"
+echo >&2 "[INFO/DEBUG] Checking for memory leaks in $assignment_cpp"
 
-g++ -std=c++11 "$assignment_cpp" -o "$assignment"
-leaks --atExit -- "./$assignment"
+if [ ! -d build ]; then
+   mkdir build
+fi
+
+g++ -std=c++11 "$assignment_cpp" -o "build/$assignment"
+leaks --atExit -- "./build/$assignment"
