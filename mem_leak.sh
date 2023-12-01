@@ -21,5 +21,5 @@ if [ ! -d build ]; then
    mkdir build
 fi
 
-g++ -std=c++11 "$assignment_cpp" -o "build/$assignment"
+g++ -std=c++17 "$assignment_cpp" -o "build/$assignment"
 leaks --atExit -- "./build/$assignment"
