@@ -91,21 +91,45 @@ bag<T1, T2>::bag(const initializer_list<T1> &I) {
     previous_n = n;
   }
 
-//  this->Sort();
+  this->Sort(T2{});
 }
 
 template<class T1, class T2>
 void bag<T1, T2>::Sort(T2 func) {
-  
+  if (!this->head || !this->head->next) { return; }
+
+  auto *outer_n = this->head;
+
+  while (outer_n) {
+    auto *inner_n = this->head;
+
+    while (inner_n) {
+      if (outer_n != inner_n && func(outer_n->value, inner_n->value)) {
+        auto temp = outer_n->value;
+        outer_n->value = inner_n->value;
+        inner_n->value = temp;
+
+      }
+      inner_n = inner_n->next;
+    }
+
+    outer_n = outer_n->next;
+  }
+
+  return;
 }
 
+/**
+ * bag Copy Constructor
+ */
 template<class T1, class T2>
 bag<T1, T2>::bag(const bag<T1, T2> &B) {
   if (!B.head) { return; }
-
   this->head = new node<T1>{B.head->value};
 
   node<T1> *n = this->head;
+
+  if (!B.head->next) { return; }
   node<T1> *B_n = B.head->next;
 
   node<T1> *previous_n = nullptr;
@@ -120,22 +144,21 @@ bag<T1, T2>::bag(const bag<T1, T2> &B) {
 
     B_n = B_n->next;
   }
-
-  unordered_map
-
-  this->Sort(T2);
 }
 
 template<class T1, class T2>
 void bag<T1, T2>::operator=(const bag<T1, T2> &B) {
   // what the hell do you do in the case if B is nullptr?
-  if (!this->head) { return; }
+  if (this == &B) { return; }
 
-  node<T1> *this_n = this->head;
-  while (this_n) {
-    auto *temp_n = this_n;
-    this_n = this_n->next;
-    delete temp_n;
+  if (this->head) {
+
+    node<T1> *this_n = this->head;
+    while (this_n) {
+      auto *temp_n = this_n;
+      this_n = this_n->next;
+      delete temp_n;
+    }
   }
 
   /* same implementation as above but I cannot call the function because it will exit
@@ -176,7 +199,14 @@ bag<T1, T2>::~bag() {
 class myFunctorClass {
  public:
   //Implement all needed functors.  See the main functions
+  template<class T1>
+  bool operator()(T1 _x, T1 _y);
 };
+
+template<class T1>
+bool myFunctorClass::operator()(T1 _x, T1 _y) {
+  return true;
+}
 
 template<typename T1, typename T2 = less<T1>>
 ostream &operator<<(ostream &str, const bag<T1, T2> &t); //forward printing
@@ -272,15 +302,20 @@ int main() {
   auto p2 = new bag<int>{1, 2, 3, 1};
   cout << endl << *p2 << endl;
   delete p2;
-  auto p = new node<bag<int>>{b11};
+  cout << b11 << endl;
+  auto *p = new node<bag<int>>{b11};
   cout << endl << p->value << endl;
   delete p;
+
   bag<bag<int>, myFunctorClass> B6{{5, 4, 3, 5}, {4, 3, 2, 3}, {1, 2, 3, 2}};
   auto B6a{B6};
+
   cout << endl << B6 << endl;
   cout << move(B6a) << endl;
+
   bag<bag<int>, myFunctorClass> B7{b11, b22, b33};
   auto B7a{B7};
+
   cout << endl << B7 << endl;
   cout << move(B7a) << endl;
 
