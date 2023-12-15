@@ -1,10 +1,10 @@
 //HW7  Due: Tuesday, December 12.
 /*
-implementclass class bag, as described in the class description.
-Also implement the needed overloaded operator << for printing.  (See main function and sample screenshot.)
-
-No extra functions or external structures (such as array, list, vector, etc.) allowed.
-
+ * implementclass class bag, as described in the class description.
+ * Also implement the needed overloaded operator << for printing.  (See main function and sample screenshot.)
+ *
+ * No extra functions or external structures (such as array, list, vector, etc.) allowed.
+ *
 */
 
 #include <iostream>
@@ -96,6 +96,7 @@ bag<T1, T2>::bag(const initializer_list<T1> &I) {
 
 template<class T1, class T2>
 void bag<T1, T2>::Sort(T2 func) {
+
   if (!this->head || !this->head->next) { return; }
 
   auto *outer_n = this->head;
@@ -104,19 +105,36 @@ void bag<T1, T2>::Sort(T2 func) {
     auto *inner_n = this->head;
 
     while (inner_n) {
-      if (outer_n != inner_n && func(outer_n->value, inner_n->value)) {
+
+      if (outer_n != inner_n && func(outer_n->value, inner_n->value)) { // check if swappable
         auto temp = outer_n->value;
         outer_n->value = inner_n->value;
         inner_n->value = temp;
-
       }
       inner_n = inner_n->next;
     }
-
     outer_n = outer_n->next;
   }
 
-  return;
+  outer_n = this->head;
+  while (outer_n) {
+    auto *inner_n = this->head;
+
+    while (inner_n) {
+
+      if (outer_n != inner_n && !func(outer_n->value, inner_n->value) && !func(inner_n->value, outer_n->value)) {
+
+        if (inner_n->previous) { inner_n->previous->next = inner_n->next; }
+
+        if (inner_n->next) { inner_n->next->previous = inner_n->previous; }
+
+      }
+
+      inner_n = inner_n->next;
+    }
+    outer_n = outer_n->next;
+  }
+
 }
 
 /**
@@ -199,13 +217,91 @@ bag<T1, T2>::~bag() {
 class myFunctorClass {
  public:
   //Implement all needed functors.  See the main functions
-  template<class T1>
-  bool operator()(T1 _x, T1 _y);
+//  template<class T1>
+//  bool operator()(T1 _x, T1 _y);
+
+  //------- Int Comparison ----------------------------------------------------------------------------------- 80 ---->>
+  bool operator()(const int _x, const int _y) const;
+
+  //------- ThreeD Comparison -------------------------------------------------------------------------------- 80 ---->>
+  bool operator()(const ThreeD _x, const ThreeD _y) const;
+
+  //---- Vec<int*> Comparison -------------------------------------------------------------------------------- 80 ---->>
+  bool operator()(const vector<int *> _x, vector<int *> _y) const;
+
+  //---- Bag<int*> Comparison -------------------------------------------------------------------------------- 80 ---->>
+  bool operator()(const bag<int> _x, const bag<int> _y) const;
+
+  //---- Vec<Bag<int>> Comparison ---------------------------------------------------------------------------- 80 ---->>
+  bool operator()(const vector<bag<int>> _x, vector<bag<int>> _y) const;
+
 };
 
-template<class T1>
-bool myFunctorClass::operator()(T1 _x, T1 _y) {
-  return true;
+//--------- Int Comparison ----------------------------------------------------------------------------------- 80 ---->>
+bool myFunctorClass::operator()(const int _x, const int _y) const {
+  return less{}(_x, _y);
+}
+
+//--------- ThreeD Comparison -------------------------------------------------------------------------------- 80 ---->>
+bool myFunctorClass::operator()(const ThreeD _x, const ThreeD _y) const {
+  return less{}(_x.vol(), _y.vol());
+}
+
+//------ Vec<int*> Comparison -------------------------------------------------------------------------------- 80 ---->>
+bool myFunctorClass::operator()(const vector<int *> _x, vector<int *> _y) const {
+  int sum_x{0};
+  for (auto &x : _x) { sum_x += *x; }
+
+  int sum_y{0};
+  for (auto &y : _y) { sum_y += *y; }
+
+  return less{}(sum_x, sum_y);
+}
+
+//------ Bag<int*> Comparison -------------------------------------------------------------------------------- 80 ---->>
+bool myFunctorClass::operator()(const bag<int> _x, const bag<int> _y) const {
+  int sum_x{0};
+  node<int> *_x_n = _x.head;
+  while (_x_n) {
+    sum_x += _x_n->value;
+    _x_n = _x_n->next;
+  }
+
+  int sum_y{0};
+  node<int> *_y_n = _y.head;
+  while (_y_n) {
+    sum_y += _y_n->value;
+    _y_n = _y_n->next;
+  }
+
+  return less{}(sum_x, sum_y);
+}
+
+//------ Vec<Bag<int>> Comparison ---------------------------------------------------------------------------- 80 ---->>
+bool myFunctorClass::operator()(const vector<bag<int>> _x, vector<bag<int>> _y) const {
+  int sum_x{0};
+  for (auto &x : _x) {
+    int sum{0};
+    node<int> *_x_n = x.head;
+    while (_x_n) {
+      sum += _x_n->value;
+      _x_n = _x_n->next;
+    }
+    sum_x += sum;
+  }
+
+  int sum_y{0};
+  for (auto &y : _y) {
+    int sum{0};
+    node<int> *_y_n = y.head;
+    while (_y_n) {
+      sum_y += _y_n->value;
+      _y_n = _y_n->next;
+    }
+    sum_y += sum;
+  }
+
+  return less{}(sum_x, sum_y);
 }
 
 template<typename T1, typename T2 = less<T1>>
@@ -228,7 +324,7 @@ ostream &operator<<(ostream &str, const bag<T1, T2> &t) {
     str << n->value << " ";
     n = n->next;
   }
-  str << "> ";
+  str << ">";
   return str;
 }
 
@@ -240,7 +336,7 @@ ostream &operator<<(ostream &str, const bag<T1, T2> &&t) {
     str << n->value << " ";
     n = n->previous;
   }
-  str << "> ";
+  str << ">";
   return str;
 }
 
@@ -268,7 +364,6 @@ int main() {
 
   bag<int> B0{3, 4, 1, 4, 5, 6, 2, 1};
   cout << B0 << endl;
-
   auto B0a{B0};
   cout << move(B0a) << endl;
 
@@ -276,7 +371,6 @@ int main() {
   auto B1a{B1};
   cout << endl << B1 << endl;
   cout << move(B1a) << endl;
-
   bag<int> B2{B0};
   B2 = B1;
   auto B2a{B2};
@@ -302,20 +396,15 @@ int main() {
   auto p2 = new bag<int>{1, 2, 3, 1};
   cout << endl << *p2 << endl;
   delete p2;
-  cout << b11 << endl;
-  auto *p = new node<bag<int>>{b11};
+  auto p = new node<bag<int>>{b11};
   cout << endl << p->value << endl;
   delete p;
-
   bag<bag<int>, myFunctorClass> B6{{5, 4, 3, 5}, {4, 3, 2, 3}, {1, 2, 3, 2}};
   auto B6a{B6};
-
   cout << endl << B6 << endl;
   cout << move(B6a) << endl;
-
   bag<bag<int>, myFunctorClass> B7{b11, b22, b33};
   auto B7a{B7};
-
   cout << endl << B7 << endl;
   cout << move(B7a) << endl;
 
