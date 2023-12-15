@@ -21,3 +21,4 @@ $ mem_leaks.sh | grep leaks
   * Would've have taken at most 2 seconds to copy and paste but whatever ... 
 
 ![Screenshot 2023-12-14 at 8 45 39 PM](https://github.com/gmaldona/cis-554/assets/60359847/bc19e84e-81e5-4c4f-b91a-dca46d95c09b)
+(source: https://www.reddit.com/r/ProgrammerHumor/comments/kwlc4e/ah_yes_the_programmer_move/)
